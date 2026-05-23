@@ -18,7 +18,7 @@
     fastfetchLogo = "/media/Pictures/logo.png";
   };
 
-  configDir = "~/nixos-config";
+  configDir = "~/nixos-config/public";
   generateConfigDir = "~/nixos-config/private";
-  rebuildFlake = "path:$HOME/nixos-config/private#workstation";
+  rebuildFlake = "~/nixos-config/private#workstation";
 }

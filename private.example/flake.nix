@@ -3,7 +3,7 @@
 
   inputs = {
     # Replace this with the absolute path to your public config checkout.
-    nixos-config.url = "git+file:/home/example/nixos-config";
+    nixos-config.url = "path:/home/example/nixos-config/public";
   };
 
   outputs =
