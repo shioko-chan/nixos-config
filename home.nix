@@ -8,6 +8,16 @@
 let
   username = settings.username;
   mount_dir = settings.paths.mountDir;
+
+  qq-fixed = pkgs.qq.overrideAttrs (old: {
+    version = "3.2.28-48517";
+
+    src = pkgs.fetchurl {
+      url = "https://dldir1.qq.com/qqfile/qq/QQNT/f9cbaab2/linuxqq_3.2.28-48517_amd64.deb";
+      hash = "sha256-aOeddKzcDFpw76jqHYtkELUaIZBoQ3dNOC8y4OOh8Nc=";
+    };
+  });
+
   stable_packages = with pkgs; [
     poppler-utils
     texliveFull
@@ -49,7 +59,7 @@ let
 
     firefox-devedition
     wechat
-    qq
+    qq-fixed
     discord
     feishu
     obs-studio
@@ -92,6 +102,7 @@ in
   xdg.userDirs = {
     enable = true;
     createDirectories = true;
+    setSessionVariables = true;
   };
   home.file."Documents" = {
     source = config.lib.file.mkOutOfStoreSymlink "${mount_dir}/Documents";
@@ -178,7 +189,6 @@ in
       confirm_os_window_close = 0;
     };
   };
-
   xdg.desktopEntries."kitty" = {
     name = "Kitty";
     icon = "kitty";
