@@ -10,7 +10,7 @@ let
   mount_dir = settings.paths.mountDir;
   stable_packages = with pkgs; [
     poppler-utils
-
+    texliveFull
     mathpix-snipping-tool
     vlc
     playwright
