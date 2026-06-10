@@ -19,6 +19,8 @@ let
   });
 
   stable_packages = with pkgs; [
+    mpi
+    pdfgrep
     poppler-utils
     texliveFull
     mathpix-snipping-tool
