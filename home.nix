@@ -52,7 +52,6 @@ let
 
     firefox-devedition
     wechat
-    qq
     discord
     feishu
     obs-studio
