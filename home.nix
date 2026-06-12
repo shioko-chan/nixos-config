@@ -9,15 +9,6 @@ let
   username = settings.username;
   mount_dir = settings.paths.mountDir;
 
-  qq-fixed = pkgs.qq.overrideAttrs (old: {
-    version = "3.2.28-48517";
-
-    src = pkgs.fetchurl {
-      url = "https://dldir1.qq.com/qqfile/qq/QQNT/f9cbaab2/linuxqq_3.2.28-48517_amd64.deb";
-      hash = "sha256-aOeddKzcDFpw76jqHYtkELUaIZBoQ3dNOC8y4OOh8Nc=";
-    };
-  });
-
   stable_packages = with pkgs; [
     mpi
     pdfgrep
@@ -61,7 +52,7 @@ let
 
     firefox-devedition
     wechat
-    qq-fixed
+    qq
     discord
     feishu
     obs-studio
