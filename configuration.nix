@@ -257,6 +257,7 @@ in
 
   nix.settings.auto-optimise-store = true;
 
+  services.flatpak.enable = true;
   # services.openssh = {
   #   enable = true;
   #   ports = [ 23571 ];

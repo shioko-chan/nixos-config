@@ -10,7 +10,6 @@ let
   mount_dir = settings.paths.mountDir;
 
   stable_packages = with pkgs; [
-    qq
     mpi
     pdfgrep
     poppler-utils
