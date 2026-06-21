@@ -161,6 +161,7 @@ in
 
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
+    TZ = config.time.timeZone;
   };
 
   programs.nix-ld = {
