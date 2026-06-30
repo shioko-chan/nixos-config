@@ -6,6 +6,7 @@
   config,
   pkgs,
   settings,
+  lib,
   ...
 }:
 
@@ -269,7 +270,26 @@ in
   services.mihomo = {
     enable = true;
     configFile = "/home/kurage/nixos-config/mihomo/config.yaml";
+    tunMode = true;
   };
+
+  networking.firewall.trustedInterfaces = [ "Mihomo" ];
+  networking.firewall.checkReversePath = "loose";
+
+  systemd.services.mihomo.serviceConfig = {
+    RestrictAddressFamilies = lib.mkForce [
+      "AF_UNIX"
+      "AF_INET"
+      "AF_INET6"
+      "AF_NETLINK"
+      "AF_PACKET"
+    ];
+  };
+
+  # networking.proxy = {
+  #   default = "http://127.0.0.1:7890";
+  #   noProxy = "127.0.0.1,localhost,.localdomain";
+  # };
   # services.openssh = {
   #   enable = true;
   #   ports = [ 23571 ];

@@ -214,7 +214,22 @@ in
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     shellAliases = {
-      update = "nix flake update --flake ${settings.rebuildFlake} && sudo nixos-rebuild switch --flake ${settings.rebuildFlake}";
+      update = ''
+        (
+           set -e
+           cd ${settings.flakePath}
+           git pull
+           nix flake update
+           sudo nixos-rebuild switch --flake .#${settings.flakeHost}
+           git add flake.lock
+           if ! git diff --cached --quiet; then
+             git commit -m "flake update"
+             git push
+           else
+             echo "No flake.lock changes to commit."
+           fi
+         )
+      '';
       ll = "ls -l";
       v = "nvim";
       gen = "sudo nixos-generate-config --dir ${settings.generateConfigDir}";

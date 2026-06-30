@@ -18,5 +18,7 @@
 
   configDir = "~/nixos-config/public";
   generateConfigDir = "~/nixos-config/public";
-  rebuildFlake = "~/nixos-config/public#workstation";
+
+  flakePath = "~/nixos-config/public";
+  flakeHost = "workstation";
 }
