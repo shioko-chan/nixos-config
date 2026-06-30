@@ -214,7 +214,7 @@ in
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     shellAliases = {
-      update = "sudo nixos-rebuild switch --flake ${settings.rebuildFlake}";
+      update = "nix flake update --flake ${settings.rebuildFlake} && sudo nixos-rebuild switch --flake ${settings.rebuildFlake}";
       ll = "ls -l";
       v = "nvim";
       gen = "sudo nixos-generate-config --dir ${settings.generateConfigDir}";

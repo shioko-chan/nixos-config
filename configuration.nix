@@ -39,7 +39,8 @@ in
   };
 
   # Set your time zone.
-  time.timeZone = "Australia/Sydney";
+  # time.timeZone = "Australia/Sydney";
+  time.timeZone = "China/Shanghai";
 
   # Select internationalisation properties.
   i18n.defaultLocale = "zh_CN.UTF-8";
@@ -264,6 +265,11 @@ in
   nix.settings.auto-optimise-store = true;
 
   services.flatpak.enable = true;
+
+  services.mihomo = {
+    enable = true;
+    configFile = "/home/kurage/nixos-config/mihomo/config.yaml";
+  };
   # services.openssh = {
   #   enable = true;
   #   ports = [ 23571 ];
