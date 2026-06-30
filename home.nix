@@ -218,13 +218,11 @@ in
         (
            set -e
            cd ${settings.flakePath}
-           git pull
            nix flake update
            sudo nixos-rebuild switch --flake .#${settings.flakeHost}
            git add flake.lock
            if ! git diff --cached --quiet; then
              git commit -m "flake update"
-             git push
            else
              echo "No flake.lock changes to commit."
            fi
