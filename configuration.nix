@@ -41,7 +41,7 @@ in
 
   # Set your time zone.
   # time.timeZone = "Australia/Sydney";
-  time.timeZone = "China/Shanghai";
+  time.timeZone = "Asia/Shanghai";
 
   # Select internationalisation properties.
   i18n.defaultLocale = "zh_CN.UTF-8";
