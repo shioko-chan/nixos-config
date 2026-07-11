@@ -10,6 +10,7 @@ let
   mount_dir = settings.paths.mountDir;
 
   stable_packages = with pkgs; [
+    iperf3
     input-leap
     ydotool
     mpi
