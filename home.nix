@@ -10,6 +10,8 @@ let
   mount_dir = settings.paths.mountDir;
 
   stable_packages = with pkgs; [
+    openssl
+
     iperf3
     input-leap
     ydotool
@@ -46,6 +48,7 @@ let
     xmake
     cmake
     cargo
+    rustfmt
     nodejs_24
 
     bubblewrap
@@ -85,7 +88,9 @@ in
   home.sessionPath = [
     "$HOME/.cargo/bin"
     "$HOME/.npm-global/bin"
+    "$HOME/.local/bin"
   ];
+
   home.sessionVariables = {
     GTK_IM_MODULE = "fcitx";
     QT_IM_MODULE = "fcitx";
@@ -219,7 +224,9 @@ in
       update = ''
         (
            set -e
-           cd ${settings.flakePath}
+           cd ${settings.configDir}/public
+           nix flake update
+           cd ${settings.configDir}/private
            nix flake update
            sudo nixos-rebuild switch --flake .#${settings.flakeHost}
            git add flake.lock

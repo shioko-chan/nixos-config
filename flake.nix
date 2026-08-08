@@ -15,6 +15,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
+
+    hardware-monitor = {
+      url = "github:shioko-chan/hardware-monitor-nixos-kde";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -24,6 +29,7 @@
       nixpkgs-unstable,
       home-manager,
       plasma-manager,
+      hardware-monitor,
       ...
     }@inputs:
     let
@@ -52,6 +58,7 @@
             hardwareModules
             ++ [
               ./configuration.nix
+
               home-manager.nixosModules.home-manager
               {
                 home-manager.useGlobalPkgs = true;
@@ -66,6 +73,15 @@
                   imports = [
                     ./home.nix
                   ];
+                };
+              }
+
+              hardware-monitor.nixosModules.default
+              {
+                services.hardware-monitor = {
+                  enable = true;
+                  pollInterval = 1;
+                  smartInterval = 120;
                 };
               }
             ]
