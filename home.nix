@@ -54,7 +54,6 @@ let
     bubblewrap
 
     gemini-cli
-    codex
 
     firefox-devedition
     wechat
@@ -78,6 +77,7 @@ let
     antigravity-ide
     vscode
     zoom-us
+    codex
   ];
 in
 {
