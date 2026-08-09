@@ -81,7 +81,7 @@
                 services.hardware-monitor = {
                   enable = true;
                   pollInterval = 1;
-                  smartInterval = 120;
+                  smartInterval = 300;
                 };
               }
             ]
