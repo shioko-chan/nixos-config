@@ -10,6 +10,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -28,6 +33,7 @@
       nixpkgs,
       nixpkgs-unstable,
       home-manager,
+      sops-nix,
       plasma-manager,
       hardware-monitor,
       ...
@@ -68,10 +74,12 @@
                 };
                 home-manager.sharedModules = [
                   plasma-manager.homeModules.plasma-manager
+                  sops-nix.homeManagerModules.sops
                 ];
                 home-manager.users.${settings.username} = {
                   imports = [
                     ./home.nix
+                    ./sops.nix
                   ];
                 };
               }

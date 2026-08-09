@@ -75,7 +75,7 @@ let
     libnotify
   ];
   unstable_packages = with pkgs-unstable; [
-    antigravity
+    antigravity-ide
     vscode
     zoom-us
   ];
