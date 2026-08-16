@@ -10,6 +10,8 @@ let
   mount_dir = settings.paths.mountDir;
 
   stable_packages = with pkgs; [
+    crow-translate
+
     openssl
 
     iperf3
