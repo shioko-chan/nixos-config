@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   pkgs-unstable,
   settings,
@@ -8,9 +9,79 @@
 let
   username = settings.username;
   mount_dir = settings.paths.mountDir;
+  xmrigEnabled = settings.xmrig.enable or false;
+
+  xmrigConfig = pkgs.writeText "xmrig-config.json" (
+    builtins.toJSON {
+      autosave = false;
+      background = false;
+      colors = true;
+      randomx = {
+        init = -1;
+        "init-avx2" = -1;
+        mode = "auto";
+        "1gb-pages" = false;
+        rdmsr = true;
+        wrmsr = true;
+        numa = true;
+      };
+      cpu = {
+        enabled = true;
+        "huge-pages" = true;
+        "huge-pages-jit" = false;
+        priority = 2;
+        yield = true;
+        "max-threads-hint" = 100;
+      };
+      opencl.enabled = false;
+      cuda.enabled = false;
+      pools = [
+        {
+          url = "127.0.0.1:3333";
+          user = "x";
+          pass = "x";
+          coin = "monero";
+          keepalive = true;
+        }
+      ];
+    }
+  );
+
+  p2poolStart = pkgs.writeShellScript "p2pool-mini-start" ''
+    set -eu
+
+    : "''${P2POOL_WALLET_ADDRESS:?Set P2POOL_WALLET_ADDRESS in the p2pool_env SOPS secret}"
+
+    if [ "$P2POOL_WALLET_ADDRESS" = "REPLACE_WITH_MONERO_PRIMARY_WALLET_ADDRESS" ]; then
+      echo "Replace P2POOL_WALLET_ADDRESS in the p2pool_env SOPS secret." >&2
+      exit 78
+    fi
+
+    data_dir="''${XDG_STATE_HOME:-$HOME/.local/state}/p2pool"
+    ${pkgs.coreutils}/bin/install -d -m 0700 "$data_dir"
+
+    exec ${lib.getExe pkgs.p2pool} \
+      --wallet "$P2POOL_WALLET_ADDRESS" \
+      --host 127.0.0.1 \
+      --rpc-port 18081 \
+      --zmq-port 18083 \
+      --mini \
+      --light-mode \
+      --stratum 127.0.0.1:3333 \
+      --p2p 127.0.0.1:37888 \
+      --socks5 127.0.0.1:7891 \
+      --socks5-proxy-type plain \
+      --no-upnp \
+      --no-log-file \
+      --data-dir "$data_dir"
+  '';
 
   stable_packages = with pkgs; [
     crow-translate
+
+    monero-gui
+    p2pool
+    xmrig
 
     openssl
 
@@ -123,6 +194,46 @@ in
   };
 
   home.packages = stable_packages ++ unstable_packages;
+
+  xdg.configFile."xmrig/config.json" = lib.mkIf xmrigEnabled {
+    source = xmrigConfig;
+  };
+
+  systemd.user.services.p2pool = lib.mkIf xmrigEnabled {
+    Unit = {
+      Description = "Monero P2Pool mini node via Mihomo";
+      After = [
+        "network-online.target"
+        "sops-nix.service"
+      ];
+      Wants = [ "network-online.target" ];
+      Requires = [ "sops-nix.service" ];
+    };
+    Service = {
+      EnvironmentFile = config.sops.secrets.p2pool_env.path;
+      ExecStart = p2poolStart;
+      Restart = "on-failure";
+      RestartPreventExitStatus = 78;
+      RestartSec = 10;
+    };
+  };
+
+  # Deliberately not enabled at login: first create a dedicated P2Pool wallet,
+  # replace the encrypted placeholder, and let this unit start P2Pool on demand.
+  systemd.user.services.xmrig = lib.mkIf xmrigEnabled {
+    Unit = {
+      Description = "XMRig Monero miner for local P2Pool mini";
+      After = [ "p2pool.service" ];
+      Requires = [ "p2pool.service" ];
+    };
+    Service = {
+      ExecStart = "${lib.getExe pkgs.xmrig} --config=${xmrigConfig}";
+      Restart = "on-failure";
+      RestartSec = 10;
+      LimitMEMLOCK = "infinity";
+      Nice = 10;
+    };
+  };
 
   programs.zed-editor = {
     enable = true;

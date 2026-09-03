@@ -14,6 +14,8 @@ let
   username = settings.username;
 in
 {
+  imports = [ ./xmr.nix ];
+
   system.nixos.tags = [ "plasma6" ];
 
   boot.kernelPackages = pkgs.linuxPackages_latest;

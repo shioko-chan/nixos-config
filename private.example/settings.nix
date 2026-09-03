@@ -21,4 +21,6 @@
   configDir = "~/nixos-config";
   generateConfigDir = "~/nixos-config/private";
   flakeHost = "workstation";
+
+  xmrig.enable = false;
 }
