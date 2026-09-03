@@ -18,8 +18,6 @@ in
 
   system.nixos.tags = [ "plasma6" ];
 
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-
   # Bootloader.
   boot.loader = {
     systemd-boot.enable = true;
