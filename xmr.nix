@@ -1,12 +1,77 @@
 {
   config,
   lib,
+  pkgs,
   settings,
   ...
 }:
 
 let
   enabled = settings.xmrig.enable or false;
+
+  # Linux requires CAP_SYS_RAWIO to open /dev/cpu/*/msr regardless of its file
+  # permissions. Keep that capability away from the networked miner and make a
+  # root-only helper save, apply, and restore the one Intel MSR used by RandomX.
+  xmrigMsrControl = pkgs.writeShellScript "xmrig-msr-control" ''
+    set -eu
+    umask 077
+
+    state_dir=/run/xmrig-msr
+    register=0x1a4
+    rdmsr=${lib.getExe' pkgs.msr-tools "rdmsr"}
+    wrmsr=${lib.getExe' pkgs.msr-tools "wrmsr"}
+
+    restore() {
+      result=0
+      for state_file in "$state_dir"/*.original; do
+        [ -e "$state_file" ] || continue
+        cpu_dir="''${state_file%.original}"
+        cpu="''${cpu_dir##*/}"
+        value="$(${pkgs.coreutils}/bin/tr -d '\n' < "$state_file")"
+        if ! "$wrmsr" -p "$cpu" "$register" "$value"; then
+          echo "Failed to restore MSR $register on CPU $cpu" >&2
+          result=1
+        fi
+      done
+      return "$result"
+    }
+
+    case "''${1:-}" in
+      start)
+        found=0
+        for msr_device in /dev/cpu/[0-9]*/msr; do
+          [ -e "$msr_device" ] || continue
+          found=1
+          cpu_dir="''${msr_device%/msr}"
+          cpu="''${cpu_dir##*/}"
+          original="$($rdmsr -p "$cpu" "$register")"
+          printf '0x%s\n' "$original" > "$state_dir/$cpu.original"
+        done
+
+        if [ "$found" -eq 0 ]; then
+          echo "No MSR devices found under /dev/cpu" >&2
+          exit 1
+        fi
+
+        for state_file in "$state_dir"/*.original; do
+          cpu_dir="''${state_file%.original}"
+          cpu="''${cpu_dir##*/}"
+          if ! "$wrmsr" -p "$cpu" "$register" 0xf; then
+            echo "Failed to apply RandomX MSR optimization on CPU $cpu; restoring original values" >&2
+            restore || true
+            exit 1
+          fi
+        done
+        ;;
+      stop)
+        restore
+        ;;
+      *)
+        echo "Usage: $0 {start|stop}" >&2
+        exit 2
+        ;;
+    esac
+  '';
 in
 {
   config = lib.mkIf enabled {
@@ -18,17 +83,26 @@ in
       "vm.hugetlb_shm_group" = config.ids.gids.users;
     };
 
-    # XMRig itself runs as the desktop user. Only that user receives access to
-    # the MSR devices needed to disable hardware prefetchers for RandomX.
+    # The helper below is the only process that accesses the MSR devices.
     hardware.cpu.x86.msr = {
       enable = true;
-      group = "xmrig";
-      mode = "0660";
       settings.allow-writes = "on";
     };
 
     users.groups.xmrig.members = [ settings.username ];
     users.users.monero.extraGroups = [ "users" ];
+
+    systemd.services.xmrig-msr = {
+      description = "Apply and restore Intel RandomX MSR optimization";
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        RuntimeDirectory = "xmrig-msr";
+        RuntimeDirectoryMode = "0700";
+        ExecStart = "${xmrigMsrControl} start";
+        ExecStop = "${xmrigMsrControl} stop";
+      };
+    };
 
     # P2Pool requires a fully synchronized Monero node with a ZMQ publisher.
     # Keep the pruned chain on the large data volume instead of the root disk.

@@ -11,6 +11,17 @@ let
   mount_dir = settings.paths.mountDir;
   xmrigEnabled = settings.xmrig.enable or false;
 
+  p2poolPackage = pkgs-unstable.p2pool.overrideAttrs (_: rec {
+    version = "4.18";
+    src = pkgs-unstable.fetchFromGitHub {
+      owner = "SChernykh";
+      repo = "p2pool";
+      rev = "v${version}";
+      hash = "sha256-nmh6XY7fP/qddzVyb1yiJ5dcOxZctCjodi5uf3M3NfM=";
+      fetchSubmodules = true;
+    };
+  });
+
   xmrigConfig = pkgs.writeText "xmrig-config.json" (
     builtins.toJSON {
       autosave = false;
@@ -21,8 +32,10 @@ let
         "init-avx2" = -1;
         mode = "auto";
         "1gb-pages" = false;
-        rdmsr = true;
-        wrmsr = true;
+        # A root-only system service applies and restores the Intel MSR. The
+        # networked miner deliberately has no CAP_SYS_RAWIO.
+        rdmsr = false;
+        wrmsr = false;
         numa = true;
       };
       cpu = {
@@ -60,7 +73,7 @@ let
     data_dir="''${XDG_STATE_HOME:-$HOME/.local/state}/p2pool"
     ${pkgs.coreutils}/bin/install -d -m 0700 "$data_dir"
 
-    exec ${lib.getExe pkgs.p2pool} \
+    exec ${lib.getExe p2poolPackage} \
       --wallet "$P2POOL_WALLET_ADDRESS" \
       --host 127.0.0.1 \
       --rpc-port 18081 \
@@ -80,7 +93,6 @@ let
     crow-translate
 
     monero-gui
-    p2pool
     xmrig
 
     openssl
@@ -146,12 +158,12 @@ let
     figlet
     libnotify
   ];
-  unstable_packages = with pkgs-unstable; [
+  unstable_packages = [ p2poolPackage ] ++ (with pkgs-unstable; [
     antigravity-ide
     vscode
     zoom-us
     codex
-  ];
+  ]);
 in
 {
   home.username = username;
@@ -227,6 +239,7 @@ in
       Requires = [ "p2pool.service" ];
     };
     Service = {
+      ExecCondition = "${pkgs.systemd}/bin/systemctl is-active --quiet xmrig-msr.service";
       ExecStart = "${lib.getExe pkgs.xmrig} --config=${xmrigConfig}";
       Restart = "on-failure";
       RestartSec = 10;
