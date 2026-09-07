@@ -82,8 +82,6 @@ let
       --light-mode \
       --stratum 127.0.0.1:3333 \
       --p2p 127.0.0.1:37888 \
-      --socks5 127.0.0.1:7891 \
-      --socks5-proxy-type plain \
       --no-upnp \
       --no-log-file \
       --data-dir "$data_dir"
@@ -92,6 +90,7 @@ let
   stable_packages = with pkgs; [
     crow-translate
 
+    monero-cli
     monero-gui
     xmrig
 
@@ -213,7 +212,7 @@ in
 
   systemd.user.services.p2pool = lib.mkIf xmrigEnabled {
     Unit = {
-      Description = "Monero P2Pool mini node via Mihomo";
+      Description = "Monero P2Pool mini node";
       After = [
         "network-online.target"
         "sops-nix.service"

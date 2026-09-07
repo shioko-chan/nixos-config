@@ -75,6 +75,8 @@ let
 in
 {
   config = lib.mkIf enabled {
+    environment.systemPackages = [ pkgs.msr-tools ];
+
     # monerod and XMRig both validate RandomX hashes. P2Pool's official Linux
     # setup recommends 3072 2 MiB pages when all three processes are present.
     boot.kernel.sysctl = {
