@@ -88,6 +88,8 @@ let
   '';
 
   stable_packages = with pkgs; [
+    wl-clipboard
+
     crow-translate
 
     monero-cli
@@ -157,7 +159,10 @@ let
     figlet
     libnotify
   ];
-  unstable_packages = [ p2poolPackage ] ++ (with pkgs-unstable; [
+  unstable_packages = [
+    p2poolPackage
+  ]
+  ++ (with pkgs-unstable; [
     antigravity-ide
     vscode
     zoom-us

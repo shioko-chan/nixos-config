@@ -66,6 +66,7 @@ in
     enable = true;
     extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
     config.common.default = "kde";
+    xdgOpenUsePortal = true;
   };
 
   # Enable the KDE Plasma Desktop Environment.
