@@ -359,6 +359,14 @@ in
            cd ${settings.configDir}/private
            nix flake update
            sudo nixos-rebuild switch --flake .#${settings.flakeHost}
+           cd ${settings.configDir}/public
+           git add flake.lock
+           if ! git diff --cached --quiet; then
+             git commit -m "flake update"
+           else
+             echo "No flake.lock changes to commit."
+           fi
+           cd ${settings.configDir}/private
            git add flake.lock
            if ! git diff --cached --quiet; then
              git commit -m "flake update"
