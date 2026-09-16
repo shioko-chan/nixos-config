@@ -88,6 +88,10 @@ let
   '';
 
   stable_packages = with pkgs; [
+    blender
+
+    gh
+
     wl-clipboard
 
     crow-translate
@@ -512,6 +516,10 @@ in
       rebase = {
         autoStash = true;
       };
+    };
+    extraConfig = {
+      credential."https://github.com".helper = "!gh auth git-credential";
+      credential."https://gist.github.com".helper = "!gh auth git-credential";
     };
   };
 
