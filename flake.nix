@@ -99,6 +99,8 @@
     {
       lib.mkNixosConfiguration = mkNixosConfiguration;
 
+      packages.x86_64-linux.codex = nixpkgs.legacyPackages.x86_64-linux.callPackage ./packages/codex.nix { };
+
       nixosConfigurations.${defaultSettings.hostName} = mkNixosConfiguration {
         settings = defaultSettings;
       };

@@ -113,6 +113,16 @@ sudo nixos-generate-config
 
 ## 检查配置
 
+Codex 使用 `packages/codex.nix` 中固定版本及 SHA-256 的官方 Linux 完整发布包，
+包含 CLI、code-mode host 与语音运行时。Home Manager 安装同一个包，私有层的
+ChatGPT 桌面包也通过 `override { codex = ...; }` 引用它。
+
+更新时修改版本与官方发布资产的校验值，然后单独构建验证：
+
+```bash
+nix build path:/home/kurage/nixos-config/public#codex --no-link --print-out-paths
+```
+
 ```bash
 nix flake check
 ```

@@ -3,6 +3,7 @@
   lib,
   pkgs,
   pkgs-unstable,
+  inputs,
   settings,
   ...
 }:
@@ -88,12 +89,10 @@ let
   '';
 
   stable_packages = with pkgs; [
+    claude-code
     blender
-
     gh
-
     wl-clipboard
-
     crow-translate
 
     monero-cli
@@ -101,7 +100,6 @@ let
     xmrig
 
     openssl
-
     iperf3
     input-leap
     ydotool
@@ -165,12 +163,12 @@ let
   ];
   unstable_packages = [
     p2poolPackage
+    inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.codex
   ]
   ++ (with pkgs-unstable; [
     antigravity-ide
     vscode
     zoom-us
-    codex
   ]);
 in
 {
