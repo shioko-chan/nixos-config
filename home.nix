@@ -89,7 +89,6 @@ let
   '';
 
   stable_packages = with pkgs; [
-    claude-code
     blender
     gh
     wl-clipboard
@@ -166,6 +165,7 @@ let
     inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.codex
   ]
   ++ (with pkgs-unstable; [
+    claude-code
     antigravity-ide
     vscode
     zoom-us
