@@ -57,6 +57,54 @@
         "type": "github"
       }
     },
+    "nixpkgs-chatgpt": {
+      "locked": {
+        "lastModified": 1788948199,
+        "narHash": "sha256-KMjpNZ19BHh9z7rM8DFWPTE5gRfpQfr9d81hZRhuPBM=",
+        "owner": "Moraxyc",
+        "repo": "nixpkgs",
+        "rev": "6f5904350edee5bb794f854ab51b1cb20b2da215",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Moraxyc",
+        "repo": "nixpkgs",
+        "rev": "6f5904350edee5bb794f854ab51b1cb20b2da215",
+        "type": "github"
+      }
+    },
+    "nixpkgs-claude": {
+      "locked": {
+        "lastModified": 1786376003,
+        "narHash": "sha256-BpcaCTQDi5kgLdDD3HUGbUoPBXhTSry3eTIpeJ1XP6E=",
+        "owner": "minegameYTB",
+        "repo": "nixpkgs",
+        "rev": "c6fdb764a39b26dae69aa468427985a0ea4d4c7b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "minegameYTB",
+        "repo": "nixpkgs",
+        "rev": "c6fdb764a39b26dae69aa468427985a0ea4d4c7b",
+        "type": "github"
+      }
+    },
+    "nixpkgs-harness": {
+      "locked": {
+        "lastModified": 1789726261,
+        "narHash": "sha256-F6R5g/ZRqhsFVI8AKHqeN/aLLKX+xf1132b7CJIKulk=",
+        "owner": "tlvince",
+        "repo": "nixpkgs",
+        "rev": "bb92a908f642b89de7f190aa0183a15510331aac",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tlvince",
+        "repo": "nixpkgs",
+        "rev": "bb92a908f642b89de7f190aa0183a15510331aac",
+        "type": "github"
+      }
+    },
     "nixpkgs-unstable": {
       "locked": {
         "lastModified": 1790578696,
@@ -101,6 +149,9 @@
         "hardware-monitor": "hardware-monitor",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-chatgpt": "nixpkgs-chatgpt",
+        "nixpkgs-claude": "nixpkgs-claude",
+        "nixpkgs-harness": "nixpkgs-harness",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "plasma-manager": "plasma-manager",
         "sops-nix": "sops-nix"
