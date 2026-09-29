@@ -21,6 +21,14 @@ nixos-config/
 ├── configuration.nix
 ├── sops.nix
 ├── hardware-configuration.nix
+├── packages/
+│   ├── chatgpt.nix
+│   ├── claude-code.nix
+│   ├── claude-desktop.nix
+│   ├── codex.nix
+│   ├── deepseek-harness.nix
+│   ├── p2pool.nix
+│   └── unreal-engine.nix
 └── home.nix
 ```
 
@@ -111,6 +119,32 @@ sudo nixos-generate-config
 
 确认 `hardware-configuration.nix` 中的磁盘、文件系统和设备设置正确后再重建系统。
 
+## 本地软件包
+
+本地包定义、版本固定及上游包的覆盖统一放在 `packages/<包名>.nix`，
+由公共 Flake 的 `packages.x86_64-linux` 导出。`home.nix` 和私有 Flake
+引用这些包；安装选择、引擎路径和本机 DPI 等设置仍由使用方传入。
+
+| 包 | 打包来源及本地定制 |
+| --- | --- |
+| `chatgpt` | `nixpkgs-chatgpt` PR 包，使用公共 Codex 包并降低启动器日志级别 |
+| `claude-code` | `nixpkgs-unstable` 包，覆盖官方版本清单 |
+| `claude-desktop` | `nixpkgs-claude` PR 包，覆盖官方版本与校验值；可通过 `deviceScaleFactor` 设置本机缩放 |
+| `codex` | 官方 Linux 完整发布包及 NixOS 运行库适配 |
+| `deepseek-harness` | `nixpkgs-harness` PR 包，修正 Bash 路径并补全启动器运行环境 |
+| `p2pool` | `nixpkgs-unstable` 包，固定源码版本与校验值 |
+| `unreal-engine` | 本地解压的 Unreal Engine 的启动器和 FHS 运行环境 |
+
+PR 的软件源及固定提交统一声明在公共 `flake.nix` 中。更新 PR 时在公共
+仓库运行 `nix flake update <输入名>`；只更新应用版本时修改对应包文件。
+私有配置使用本地公共输入，修改后在私有仓库运行 `nix flake update nixos-config`。
+
+可单独构建任一导出的包，例如：
+
+```bash
+nix build path:/home/kurage/nixos-config/public#claude-code --no-link --print-out-paths
+```
+
 ## 检查配置
 
 Codex 使用 `packages/codex.nix` 中固定版本及 SHA-256 的官方 Linux 完整发布包，
@@ -131,6 +165,38 @@ nix flake check
 
 ```bash
 nix flake show
+```
+
+## Unreal Engine
+
+将 Epic 官方 Linux 二进制包解压到 `settings.paths.mountDir` 下的
+`Unreal/UE_5.8`。Nix 管理启动环境和 NSS/NSPR 等运行库；引擎保持在原目录，
+使用随包附带的 .NET SDK 与 Clang 工具链。
+
+应用 Home Manager 配置后，可从应用菜单启动 **Unreal Editor**，或运行
+`unreal-editor /absolute/path/Game.uproject`。未应用配置时可直接启动：
+
+```bash
+nix run path:/home/kurage/nixos-config/public#unreal-engine
+```
+
+`unreal-env` 可让构建脚本或终端使用相同的 FHS 环境：
+
+```bash
+unreal-env /media/Unreal/UE_5.8/Engine/Build/BatchFiles/Linux/Build.sh \
+  GameEditor Linux Development -Project=/absolute/path/Game.uproject -NoHotReloadFromIDE
+unreal-env /media/Unreal/UE_5.8/Engine/Build/BatchFiles/Linux/GenerateProjectFiles.sh \
+  -project=/absolute/path/Game.uproject -game -vscode
+unreal-env bash
+```
+
+命令行完整构建使用 `-NoHotReloadFromIDE`，避免另一个 FHS 环境中正在运行的编辑器
+触发 UE 5.8 的进程路径检测异常；它不会执行编辑器热重载。
+
+单独构建启动器：
+
+```bash
+nix build path:/home/kurage/nixos-config/public#unreal-engine --no-link --print-out-paths
 ```
 
 ## 应用配置

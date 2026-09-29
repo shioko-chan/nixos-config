@@ -12,16 +12,7 @@ let
   mount_dir = settings.paths.mountDir;
   xmrigEnabled = settings.xmrig.enable or false;
 
-  p2poolPackage = pkgs-unstable.p2pool.overrideAttrs (_: rec {
-    version = "4.18";
-    src = pkgs-unstable.fetchFromGitHub {
-      owner = "SChernykh";
-      repo = "p2pool";
-      rev = "v${version}";
-      hash = "sha256-nmh6XY7fP/qddzVyb1yiJ5dcOxZctCjodi5uf3M3NfM=";
-      fetchSubmodules = true;
-    };
-  });
+  localPackages = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 
   xmrigConfig = pkgs.writeText "xmrig-config.json" (
     builtins.toJSON {
@@ -74,7 +65,7 @@ let
     data_dir="''${XDG_STATE_HOME:-$HOME/.local/state}/p2pool"
     ${pkgs.coreutils}/bin/install -d -m 0700 "$data_dir"
 
-    exec ${lib.getExe p2poolPackage} \
+    exec ${lib.getExe localPackages.p2pool} \
       --wallet "$P2POOL_WALLET_ADDRESS" \
       --host 127.0.0.1 \
       --rpc-port 18081 \
@@ -89,6 +80,9 @@ let
   '';
 
   stable_packages = with pkgs; [
+    (localPackages.unreal-engine.override {
+      engineRoot = "${mount_dir}/Unreal/UE_5.8";
+    })
     blender
     gh
     wl-clipboard
@@ -161,11 +155,11 @@ let
     libnotify
   ];
   unstable_packages = [
-    p2poolPackage
-    inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.codex
+    localPackages.p2pool
+    localPackages.codex
+    localPackages.claude-code
   ]
   ++ (with pkgs-unstable; [
-    claude-code
     antigravity-ide
     vscode
     zoom-us
@@ -183,6 +177,7 @@ in
   ];
 
   home.sessionVariables = {
+    UV_LINK_MODE = "hardlink";
     GTK_IM_MODULE = "fcitx";
     QT_IM_MODULE = "fcitx";
     XMODIFIERS = "@im=fcitx";
