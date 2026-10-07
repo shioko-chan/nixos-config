@@ -94,6 +94,7 @@ let
 
     openssl
     iperf3
+    rclone
     input-leap
     ydotool
     mpi

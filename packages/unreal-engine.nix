@@ -36,6 +36,9 @@ let
       exit 1
     fi
     cd "$engine_root" || exit 1
+    # UE's SDL windows do not request high pixel density on Wayland.
+    # Map rendered pixels 1:1 instead of enlarging a low-resolution buffer.
+    export SDL_VIDEO_WAYLAND_SCALE_TO_DISPLAY=1
     exec ${lib.getExe environment} "$engine_root/Engine/Binaries/Linux/UnrealEditor" "$@"
   '';
 

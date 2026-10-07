@@ -173,6 +173,10 @@ nix flake show
 `Unreal/UE_5.8`。Nix 管理启动环境和 NSS/NSPR 等运行库；引擎保持在原目录，
 使用随包附带的 .NET SDK 与 Clang 工具链。
 
+启动器为编辑器设置 `SDL_VIDEO_WAYLAND_SCALE_TO_DISPLAY=1`，避免 Wayland
+在高 DPI 屏幕上放大低分辨率窗口而导致文字模糊。已在 4K、200% 缩放下验证；
+不同缩放比例的屏幕之间移动窗口时，仍需留意窗口大小和弹出菜单的位置。
+
 应用 Home Manager 配置后，可从应用菜单启动 **Unreal Editor**，或运行
 `unreal-editor /absolute/path/Game.uproject`。未应用配置时可直接启动：
 
