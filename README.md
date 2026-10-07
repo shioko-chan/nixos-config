@@ -1,17 +1,19 @@
 # nixos-config
 
-可复用的公开 NixOS 配置，使用 Flakes、Home Manager 和 Plasma Manager 管理系统与用户环境。仓库将通用配置与机器私有配置分离，并导出 `lib.mkNixosConfiguration` 供其他 Flake 复用。
+[English](README.md) | [简体中文](README.zh-CN.md)
 
-## 主要组件
+A reusable public NixOS configuration that uses Flakes, Home Manager, and Plasma Manager to manage the system and user environment. The repository separates shared configuration from machine-specific private configuration and exports `lib.mkNixosConfiguration` for reuse by other Flakes.
+
+## Main Components
 
 - NixOS 26.05
-- `nixpkgs-unstable`，用于按需引入较新的软件包
+- `nixpkgs-unstable` for selectively using newer packages
 - Home Manager
 - Plasma Manager
 - sops-nix + age
-- 可复用的 NixOS configuration 构造函数
+- A reusable NixOS configuration constructor
 
-## 文件结构
+## File Structure
 
 ```text
 nixos-config/
@@ -32,10 +34,11 @@ nixos-config/
 └── home.nix
 ```
 
-## 使用 sops-nix + age
+## Using sops-nix + age
 
-当前使用 Home Manager 用户级 sops-nix。首次使用时需要为用户引导 age
-私钥；该文件不会进入 Nix store，也绝不能提交到 Git：
+The configuration currently uses user-level sops-nix through Home Manager. On first use,
+bootstrap an age private key for the user. This file stays out of the Nix store and must
+never be committed to Git:
 
 ```bash
 install -d -m 0700 ~/.config/sops/age
@@ -43,10 +46,10 @@ age-keygen -o ~/.config/sops/age/keys.txt
 age-keygen -y ~/.config/sops/age/keys.txt
 ```
 
-`age-keygen -o` 会以 `0600` 权限创建私钥。如果目标文件已经存在，它会拒绝
-覆盖，以免误删已有密钥。
+`age-keygen -o` creates the private key with `0600` permissions. If the target file already
+exists, it refuses to overwrite it, preventing accidental loss of an existing key.
 
-把输出的 `age1...` 公钥写入私有配置仓库的 `.sops.yaml`：
+Add the resulting `age1...` public key to `.sops.yaml` in your private configuration repository:
 
 ```yaml
 keys:
@@ -58,14 +61,14 @@ creation_rules:
           - *desktop
 ```
 
-随后在私有配置仓库中创建密文文件：
+Then create an encrypted file in the private configuration repository:
 
 ```bash
 mkdir -p secrets
 sops secrets/secrets.yaml
 ```
 
-在私有 Flake 的 `extraModules` 中为 Home Manager 用户声明要解密的键。例如：
+Declare the keys to decrypt for the Home Manager user in the private Flake's `extraModules`. For example:
 
 ```nix
 extraModules = [
@@ -78,14 +81,15 @@ extraModules = [
 ];
 ```
 
-Home Manager 模块或用户服务通过 `config.sops.secrets.example.path` 引用运行时
-解密文件。不要用 `builtins.readFile` 读取秘密，否则明文会被复制进 Nix
-store。请单独备份 age 私钥；私钥遗失后无法恢复已有密文。系统服务无法依赖
-用户级秘密；需要在登录前使用的秘密应改用 NixOS 系统级 sops-nix。
+Home Manager modules or user services reference the file decrypted at runtime through
+`config.sops.secrets.example.path`. Do not read secrets with `builtins.readFile`, as this
+copies plaintext into the Nix store. Back up the age private key separately; existing
+encrypted data cannot be decrypted if the private key is lost. System services cannot depend
+on user-level secrets. Secrets needed before login should use system-level sops-nix in NixOS instead.
 
-## 使用前配置
+## Configuration Before Use
 
-编辑 `settings.nix`，替换示例值：
+Edit `settings.nix` and replace the example values:
 
 ```nix
 {
@@ -111,47 +115,54 @@ store。请单独备份 age 私钥；私钥遗失后无法恢复已有密文。�
 }
 ```
 
-首次用于新机器时，还应生成或复制与该机器匹配的硬件配置：
+When setting up a new machine for the first time, also generate or copy the hardware
+configuration for that machine:
 
 ```bash
 sudo nixos-generate-config
 ```
 
-确认 `hardware-configuration.nix` 中的磁盘、文件系统和设备设置正确后再重建系统。
+Before rebuilding the system, confirm that the disks, filesystems, and device settings in
+`hardware-configuration.nix` are correct.
 
-## 本地软件包
+## Local Packages
 
-本地包定义、版本固定及上游包的覆盖统一放在 `packages/<包名>.nix`，
-由公共 Flake 的 `packages.x86_64-linux` 导出。`home.nix` 和私有 Flake
-引用这些包；安装选择、引擎路径和本机 DPI 等设置仍由使用方传入。
+Local package definitions, version pins, and overrides of upstream packages are kept in
+`packages/<package-name>.nix` and exported by the public Flake as `packages.x86_64-linux`.
+`home.nix` and the private Flake reference these packages; consumers still supply settings
+such as which packages to install, engine paths, and the machine's DPI.
 
-| 包 | 打包来源及本地定制 |
+| Package | Packaging Source and Local Customizations |
 | --- | --- |
-| `chatgpt` | `nixpkgs-chatgpt` PR 包，使用公共 Codex 包并降低启动器日志级别 |
-| `claude-code` | `nixpkgs-unstable` 包，覆盖官方版本清单 |
-| `claude-desktop` | `nixpkgs-claude` PR 包，覆盖官方版本与校验值；可通过 `deviceScaleFactor` 设置本机缩放 |
-| `codex` | 官方 Linux 完整发布包及 NixOS 运行库适配 |
-| `deepseek-harness` | `nixpkgs-harness` PR 包，修正 Bash 路径并补全启动器运行环境 |
-| `p2pool` | `nixpkgs-unstable` 包，固定源码版本与校验值 |
-| `unreal-engine` | 本地解压的 Unreal Engine 的启动器和 FHS 运行环境 |
+| `chatgpt` | The `nixpkgs-chatgpt` PR package, using the public Codex package and a lower launcher log level |
+| `claude-code` | The `nixpkgs-unstable` package, with an override for the official version manifest |
+| `claude-desktop` | The `nixpkgs-claude` PR package, with overrides for the official version and checksum; `deviceScaleFactor` sets scaling for the local machine |
+| `codex` | The full official Linux release bundle with runtime library adaptations for NixOS |
+| `deepseek-harness` | The `nixpkgs-harness` PR package, with a corrected Bash path and a complete launcher runtime environment |
+| `p2pool` | The `nixpkgs-unstable` package, with the source version and checksum pinned |
+| `unreal-engine` | A launcher and FHS runtime environment for a locally extracted Unreal Engine |
 
-PR 的软件源及固定提交统一声明在公共 `flake.nix` 中。更新 PR 时在公共
-仓库运行 `nix flake update <输入名>`；只更新应用版本时修改对应包文件。
-私有配置使用本地公共输入，修改后在私有仓库运行 `nix flake update nixos-config`。
+Package sources from PRs and their pinned commits are declared centrally in the public
+`flake.nix`. To update a PR input, run `nix flake update <input-name>` in the public
+repository. To update only an application version, edit the corresponding package file.
+The private configuration uses a local public input; after making changes, run
+`nix flake update nixos-config` in the private repository.
 
-可单独构建任一导出的包，例如：
+You can build any exported package individually, for example:
 
 ```bash
 nix build path:/home/kurage/nixos-config/public#claude-code --no-link --print-out-paths
 ```
 
-## 检查配置
+## Checking the Configuration
 
-Codex 使用 `packages/codex.nix` 中固定版本及 SHA-256 的官方 Linux 完整发布包，
-包含 CLI、code-mode host 与语音运行时。Home Manager 安装同一个包，私有层的
-ChatGPT 桌面包也通过 `override { codex = ...; }` 引用它。
+Codex uses the full official Linux release bundle, with its version and SHA-256 pinned in
+`packages/codex.nix`. The bundle includes the CLI, code-mode host, and voice runtime.
+Home Manager installs the same package, and the ChatGPT desktop package in the private
+layer also references it through `override { codex = ...; }`.
 
-更新时修改版本与官方发布资产的校验值，然后单独构建验证：
+To update it, change the version and the checksum of the official release asset, then
+build it independently to verify:
 
 ```bash
 nix build path:/home/kurage/nixos-config/public#codex --no-link --print-out-paths
@@ -161,7 +172,7 @@ nix build path:/home/kurage/nixos-config/public#codex --no-link --print-out-path
 nix flake check
 ```
 
-查看可用输出：
+To view the available outputs:
 
 ```bash
 nix flake show
@@ -169,22 +180,25 @@ nix flake show
 
 ## Unreal Engine
 
-将 Epic 官方 Linux 二进制包解压到 `settings.paths.mountDir` 下的
-`Unreal/UE_5.8`。Nix 管理启动环境和 NSS/NSPR 等运行库；引擎保持在原目录，
-使用随包附带的 .NET SDK 与 Clang 工具链。
+Extract Epic's official Linux binary package to `Unreal/UE_5.8` under
+`settings.paths.mountDir`. Nix manages the launch environment and runtime libraries such
+as NSS/NSPR. The engine stays in its original directory and uses its bundled .NET SDK
+and Clang toolchain.
 
-启动器为编辑器设置 `SDL_VIDEO_WAYLAND_SCALE_TO_DISPLAY=1`，避免 Wayland
-在高 DPI 屏幕上放大低分辨率窗口而导致文字模糊。已在 4K、200% 缩放下验证；
-不同缩放比例的屏幕之间移动窗口时，仍需留意窗口大小和弹出菜单的位置。
+The launcher sets `SDL_VIDEO_WAYLAND_SCALE_TO_DISPLAY=1` for the editor to avoid
+blurry text caused by Wayland enlarging a low-resolution window on high-DPI displays.
+This has been verified at 4K with 200% scaling. When moving windows between displays
+with different scale factors, check window sizes and popup menu positions.
 
-应用 Home Manager 配置后，可从应用菜单启动 **Unreal Editor**，或运行
-`unreal-editor /absolute/path/Game.uproject`。未应用配置时可直接启动：
+After applying the Home Manager configuration, launch **Unreal Editor** from the
+application menu or run `unreal-editor /absolute/path/Game.uproject`. You can also launch
+it directly before applying the configuration:
 
 ```bash
 nix run path:/home/kurage/nixos-config/public#unreal-engine
 ```
 
-`unreal-env` 可让构建脚本或终端使用相同的 FHS 环境：
+`unreal-env` lets build scripts or a terminal use the same FHS environment:
 
 ```bash
 unreal-env /media/Unreal/UE_5.8/Engine/Build/BatchFiles/Linux/Build.sh \
@@ -194,44 +208,47 @@ unreal-env /media/Unreal/UE_5.8/Engine/Build/BatchFiles/Linux/GenerateProjectFil
 unreal-env bash
 ```
 
-命令行完整构建使用 `-NoHotReloadFromIDE`，避免另一个 FHS 环境中正在运行的编辑器
-触发 UE 5.8 的进程路径检测异常；它不会执行编辑器热重载。
+Use `-NoHotReloadFromIDE` for full command-line builds to prevent an editor running in
+another FHS environment from triggering UE 5.8's process-path detection error. This does
+not perform an editor hot reload.
 
-单独构建启动器：
+To build the launcher separately:
 
 ```bash
 nix build path:/home/kurage/nixos-config/public#unreal-engine --no-link --print-out-paths
 ```
 
-## 应用配置
+## Applying the Configuration
 
-在仓库根目录运行：
+Run from the repository root:
 
 ```bash
 sudo nixos-rebuild switch --flake .#your-host
 ```
 
-其中 `your-host` 必须与 `settings.nix` 中的 `hostName` 一致。
+`your-host` must match `hostName` in `settings.nix`.
 
-仅构建但不切换：
+To build without switching:
 
 ```bash
 sudo nixos-rebuild build --flake .#your-host
 ```
 
-## 作为公共模块复用
+## Reusing as a Public Module
 
-`flake.nix` 导出了：
+`flake.nix` exports:
 
 ```nix
 lib.mkNixosConfiguration
 ```
 
-私有仓库可以引用该函数，并传入自己的 `settings`、`hardwareModules` 和额外模块，从而把用户名、主机信息、硬件配置与秘密留在私有层。
+A private repository can reference this function and pass its own `settings`,
+`hardwareModules`, and additional modules, keeping usernames, host information, hardware
+configuration, and secrets in the private layer.
 
-## 注意事项
+## Notes
 
-- 在执行 `switch` 前检查磁盘挂载、引导器、用户名和主机名。
-- 不要在公开仓库提交密码、私钥、无线网络凭据或其他秘密。
-- `settings.nix` 当前是示例配置，不能直接用于真实机器。
-- 建议先使用 `build` 或虚拟机测试，再应用到主系统。
+- Check disk mounts, the bootloader, username, and hostname before running `switch`.
+- Do not commit passwords, private keys, wireless network credentials, or other secrets to a public repository.
+- `settings.nix` is currently an example configuration and cannot be used directly on a real machine.
+- It is recommended to test with `build` or a virtual machine before applying the configuration to your main system.
