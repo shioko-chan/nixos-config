@@ -10,10 +10,10 @@
   passthru = old.passthru // {
     sources = old.passthru.sources // {
       x86_64-linux = rec {
-        version = "26.1002.52244";
+        version = "26.1007.71326";
         src = {
           url = "https://persistent.oaistatic.com/codex-app-prod/linux/deb/pool/main/c/chatgpt/chatgpt_${version}_amd64.deb";
-          hash = "sha256-lJjkFxMaJ4vONb//YnXSUsDTMvF6/AMT4LeCdJ9NNIo=";
+          hash = "sha256-DgBrSTFxL1qQ1M0ElyxuC1M87c39srUZRtW5NnRx9VY=";
         };
       };
     };
