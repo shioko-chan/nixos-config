@@ -178,6 +178,18 @@ To view the available outputs:
 nix flake show
 ```
 
+## Go Development
+
+The user environment includes Go, gopls, Delve (`dlv`), gotools (`goimports`),
+and go-tools (`staticcheck`). Go-installed commands are added to `PATH`.
+
+- `GOPATH`: `$XDG_DATA_HOME/go` (normally `~/.local/share/go`)
+- `GOMODCACHE`: `$XDG_CACHE_HOME/go/mod` (normally `~/.cache/go/mod`)
+- `GOCACHE`: `$XDG_CACHE_HOME/go/build` (normally `~/.cache/go/build`)
+
+After deploying, log in again so terminals and editors inherit the new environment.
+Project source code can stay anywhere; it does not need to live under `GOPATH`.
+
 ## Unreal Engine
 
 Extract Epic's official Linux binary package to `Unreal/UE_5.8` under

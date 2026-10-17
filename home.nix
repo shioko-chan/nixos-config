@@ -95,7 +95,6 @@ let
     openssl
     iperf3
     rclone
-    input-leap
     ydotool
     mpi
     pdfgrep
@@ -122,6 +121,10 @@ let
     gnumake
     pkg-config
     jdk25_headless
+    apktool
+    ghidra
+    android-tools
+    frida-tools
     nil
     nixd
     nixfmt
@@ -131,6 +134,11 @@ let
     cmake
     cargo
     rustfmt
+    go
+    gopls
+    delve
+    gotools
+    go-tools
     nodejs_24
 
     bubblewrap
@@ -175,9 +183,13 @@ in
     "$HOME/.cargo/bin"
     "$HOME/.npm-global/bin"
     "$HOME/.local/bin"
+    "${config.xdg.dataHome}/go/bin"
   ];
 
   home.sessionVariables = {
+    GOPATH = "${config.xdg.dataHome}/go";
+    GOMODCACHE = "${config.xdg.cacheHome}/go/mod";
+    GOCACHE = "${config.xdg.cacheHome}/go/build";
     UV_LINK_MODE = "hardlink";
     GTK_IM_MODULE = "fcitx";
     QT_IM_MODULE = "fcitx";
