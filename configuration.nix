@@ -303,6 +303,7 @@ in
     ];
   };
 
+  networking.firewall.interfaces."br-8d3e7c7458d8".allowedTCPPorts = [ 7890 ];
   # services.openssh = {
   #   enable = true;
   #   ports = [ 23571 ];
