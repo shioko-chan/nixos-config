@@ -149,6 +149,22 @@ in
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
+  nixpkgs.overlays = [
+    (_final: prev: {
+      kdePackages = prev.kdePackages.overrideScope (_kdeFinal: kdePrev: {
+        # Backport KDE/krdp 573e40a: FreeRDP 3.32 enables ExtSecurity by default.
+        krdp = kdePrev.krdp.overrideAttrs (old: {
+          postPatch = (old.postPatch or "") + ''
+            substituteInPlace src/RdpConnection.cpp \
+              --replace-fail 'freerdp_settings_set_bool(settings, FreeRDP_NlaSecurity, false);' \
+              'freerdp_settings_set_bool(settings, FreeRDP_NlaSecurity, false);
+                freerdp_settings_set_bool(settings, FreeRDP_ExtSecurity, false);'
+          '';
+        });
+      });
+    })
+  ];
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
